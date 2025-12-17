@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Recipe;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,6 +26,11 @@ Route::get('/list', function () {
 
 Route::get('/recipe-edit', function () {
     return view('RecipeEdit');
+});
+
+Route::get('/dbrecipe', function () {
+    dd(Tag::all());
+    return '<h1>Debugbar test</h1>';
 });
 
 

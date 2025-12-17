@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id()->autoIncrement();
             $table->integer('ingredient_id')->foreign()->references('id')->on('ingredients')->onDelete('cascade');
             $table->integer('recipe_id')->foreign()->references('id')->on('recipes')->onDelete('cascade');
+            $table->string('quantity');
         });
     }
 

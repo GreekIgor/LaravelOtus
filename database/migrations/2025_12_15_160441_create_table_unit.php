@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('recipes', function (Blueprint $table) {
-            $table->integer('tag_id')->foreign()->references('id')->on('tags')->onDelete('cascade');
+        Schema::create('units', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
         });
     }
 
@@ -21,9 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('recipes', function (Blueprint $table) {
-            $table->dropForeign(['tag_id']);
-            $table->dropColumn('tag_id');
-        });
+        Schema::dropIfExists('units');
     }
 };

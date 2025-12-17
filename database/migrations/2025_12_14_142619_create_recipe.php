@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('recipes', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->text('description');
             $table->text('instructions');
             $table->timestamps();
-            $table->integer('user_id');
+            $table->unsignedBigInteger('user_id');
         });
     }
 
