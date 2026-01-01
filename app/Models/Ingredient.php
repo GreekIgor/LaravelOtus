@@ -16,4 +16,9 @@ class Ingredient extends Model
             'recipe_id'
         )->withPivot('quantity');
     }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
+    }
 }
