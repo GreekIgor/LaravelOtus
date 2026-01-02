@@ -7,6 +7,7 @@ use App\Models\Ingredient;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Services\IngredientService;
+use Illuminate\Support\Facades\Gate;
 
 class IngredientController extends Controller
 {
@@ -50,6 +51,10 @@ public function index(Request $request)
     }
 
     $units = Unit::all();
+    if (!Gate::allows('isAdmin')) {
+        abort(403, 'Доступ запрещен');
+    }
+    
     return view('admin.ingredients.index', compact('units'));
 }
 

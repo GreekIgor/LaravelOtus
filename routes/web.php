@@ -6,13 +6,12 @@ use App\Models\Ingredient;
 use App\Models\Recipe;
 use App\Models\Tag;
 use App\Models\User;
+use App\Repositories\RecipeRepository;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
-Route::get('/home', function () {
+Route::get('/', function () {
     return view('Home');
 });
 
@@ -20,20 +19,32 @@ Route::get('/personal', function () {
     return view('UserPersonal');
 });
 
-Route::get('/recipe', function () {
-    return view('Recipe');
-});
+Route::get('/recipe/{recipe}', function (Recipe $recipe) {
+    return view('Recipe', compact('recipe'));
+})->name('recipe.detail');
 
-Route::get('/list', function () {
-    return view('RecipeList');
-});
+Route::get('/list', [RecipeController::class, 'list'])->name('recipes.list');
 
-Route::get('/recipe-edit', function () {
-    return view('recipe.edit');
-});
+Route::get('/recipe-edit/{recipe}', function (Recipe $recipe) {
+    Gate::authorize('update', $recipe);
+    return view('recipe.edit', compact('recipe'));
+})->name('recipe-edit');
 
-Route::group(['prefix' => 'admin'], function () {
+Route::put('/recipe-edit/{recipe}', [RecipeController::class, 'update'])->name('recipe-edit');
+Route::post('/recipe-store', [RecipeController::class, 'store'])->name('recipe-store');
+
+Route::get('/recipe-create', function () {
+    Gate::authorize('create', Recipe::class);
+    return view('recipe.edit', ['recipe' => new Recipe()]);
+})->name('recipe-create');
+
+Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
+
+  
     Route::get('/', function () {
+          if (!Gate::allows('isAdmin')){
+                abort(403);
+            }
         // Статистика для карточек
     $stats = [
         'users_count' => User::count(),
@@ -54,15 +65,21 @@ Route::group(['prefix' => 'admin'], function () {
         ->take(10)
         ->get();
         return view('admin.dashboard', compact('stats', 'registrations', 'topAuthors'));
-    }); //
+    })->name('admin.dashboard');
 
     Route::resource('ingredients', IngredientController::class);
     Route::resource('recipes', RecipeController::class);
 });
+
+
+Route::get('/profile-edit', function () {
+    return view('profile.edit');
+})->name('profile.edit');
 
 Route::get('/dbrecipe', function () {
     dd(Tag::all());
     return '<h1>Debugbar test</h1>';
 });
 
+require __DIR__.'/auth.php';
 

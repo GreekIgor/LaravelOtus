@@ -8,6 +8,7 @@ use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Services\RecipeService;
 use App\Services\IngredientService;
+use Illuminate\Support\Facades\Gate;
 
 class RecipeController extends Controller
 {
@@ -18,6 +19,13 @@ class RecipeController extends Controller
     {
         $this->recipeService = $recipeService;
         $this->ingredientService = $ingredientService;
+    }
+
+
+    public function list()
+    {
+        $recipes = Recipe::with(['author', 'ingredients'])->paginate(10);
+        return view('recipelist', compact('recipes'));
     }
     /**
      * Display a listing of the resource.
@@ -73,12 +81,15 @@ public function index(Request $request)
         ]);
     }
 
+    if(!Gate::allows('isAdmin')) {
+        abort(403, 'Доступ запрещен');
+    }
     return view('admin.recipes.index');
 }
 
 // Вспомогательные методы для чистоты кода
 private function renderTitleInfo($recipe) {
-    $img = $recipe->img ? asset('storage/'.$recipe->img) : 'https://via.placeholder.com/50';
+    $img = $recipe->image_path ? asset($recipe->image_path) : 'https://via.placeholder.com/50';
     return '<div class="d-flex align-items-center">
                 <img src="'.$img.'" class="rounded me-2" style="width:40px;height:40px;object-fit:cover;">
                 <div><div class="fw-bold">'.$recipe->title.'</div><small class="text-muted">#'.$recipe->id.'</small></div>
