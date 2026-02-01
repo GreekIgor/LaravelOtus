@@ -2,7 +2,9 @@
 
 namespace App\Repositories;
 
+use App\Models\Ingredient;
 use App\Models\Recipe;
+use DB;
 
 class RecipeRepository
 {
@@ -17,19 +19,33 @@ class RecipeRepository
         return Recipe::with(['author', 'ingredients'])->find($id);
     }
 
-    public function create(array $data): Recipe
-    {
-        return Recipe::create($data);
-    }
+public function create(array $recipeData, array $syncData): Recipe
+{
+    return DB::transaction(function() use ($recipeData, $syncData) {
+        $recipe = Recipe::create($recipeData);
 
-    public function update($id, array $data): bool
-    {
-        $recipe = $this->findById($id);
-        if ($recipe) {
-            return $recipe->update($data);
+        if (!empty($syncData)) {
+            $recipe->ingredients()->attach($syncData);
         }
-        return false;
-    }
+
+        return $recipe->fresh(['ingredients']);
+    });
+}
+
+public function update(Recipe $recipe, array $recipeData, array $syncIngredients): Recipe
+{
+    return DB::transaction(function () use ($recipe, $recipeData, $syncIngredients) {
+        //  Простое обновление полей самой таблицы recipes
+        $recipe->update($recipeData);
+
+        //  Синхронизация связей (sync ожидает массив [id => ['pivot_field' => 'value']])
+        if (!empty($syncIngredients)) {
+            $recipe->ingredients()->sync($syncIngredients);
+        }
+
+        return $recipe->fresh(['ingredients']); // Возвращаем обновленный объект с загруженными связями
+    });
+}
 
     public function delete($id): bool|null
     {

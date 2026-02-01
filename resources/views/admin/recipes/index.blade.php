@@ -1,6 +1,13 @@
 @extends('layouts.admin')
 
 @section('content')
+
+{{-- Скрытая форма для удаления --}}
+<form id="delete-form" action="" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
@@ -44,5 +51,14 @@ $(document).ready(function() {
         }
     });
 });
+
+function confirmDelete(url) {
+    if (confirm('Вы уверены, что хотите удалить этот рецепт?')) {
+        let form = document.getElementById('delete-form');
+        form.action = url;
+        form.submit();
+    }
+}
+
 </script>
 @endsection

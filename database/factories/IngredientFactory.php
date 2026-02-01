@@ -19,7 +19,6 @@ class IngredientFactory extends Factory
     {
         return [
             'name' => $this->faker->word(),
-            'quantity' => $this->faker->randomFloat(2, 0.1, 100),
             'unit_id' => \App\Models\Unit::factory(),
             'img' => $this->faker->imageUrl(),
         ];

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Recipe extends Model
 {
     //
+
+    protected $fillable = ['title', 'time', 'difficulty', 'image_path', 'ingredients', 'amounts', 'units', 'instructions', 'user_id'];
     
     public function author()
     {

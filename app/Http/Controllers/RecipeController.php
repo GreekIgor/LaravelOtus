@@ -22,11 +22,36 @@ class RecipeController extends Controller
     }
 
 
-    public function list()
-    {
+public function showRecipeList()
+{
         $recipes = Recipe::with(['author', 'ingredients'])->paginate(10);
         return view('recipelist', compact('recipes'));
-    }
+}
+
+public function showRecipe(int $recipeID){
+
+   $recipe = $this->recipeService->getRecipeById($recipeID);
+   return view('Recipe', compact('recipe'));
+}
+
+
+public function showRecipeEdit(int $recipeID){
+    $recipe = $this->recipeService->getRecipeById($recipeID);
+    $ingredients = $this->ingredientService->getAllIngredients();
+    $units = Unit::all();
+    Gate::authorize('update', $recipe);
+    return view('recipe.edit', compact('recipe', 'ingredients', 'units'));
+}
+
+
+public function showRecipeCreate(){
+    $recipe = new Recipe();
+    Gate::authorize('create', Recipe::class);
+    $ingredients = $this->ingredientService->getAllIngredients();
+    $units = Unit::all();
+    return view('recipe.edit', compact('recipe', 'ingredients', 'units'));
+}
+
     /**
      * Display a listing of the resource.
      */
@@ -116,10 +141,11 @@ private function renderActions($recipe) {
     /**
      * Store a newly created resource in storage.
      */
-    public function store(RecipeRequest $request)
+    public function store(Request $request)
     {
-        $recipe = $this->recipeService->createRecipe($request->validated());
-        return response()->json($recipe, 201);
+    
+        $recipe = $this->recipeService->createRecipe(array_merge(['user_id'=>auth()->id()],$request->all()));
+        return redirect()->route('recipe-edit', $recipe->id);
     }
 
     /**
@@ -147,9 +173,9 @@ private function renderActions($recipe) {
      */
     public function update(RecipeRequest $request, string $id)
     {
-        //
+
         $this->recipeService->updateRecipe($id, $request->validated());
-        return redirect()->route('admin.recipes.edit', $id)->with('success', 'Recipe updated successfully.');
+        return redirect()->route('recipe-edit', $id)->with('success', 'Recipe updated successfully.');
     }
 
     /**
@@ -158,6 +184,6 @@ private function renderActions($recipe) {
     public function destroy(string $id)
     {
         $this->recipeService->deleteRecipe($id);
-        return redirect()->route('admin.recipes.index')->with('success', 'Recipe deleted successfully.');
+        return redirect()->route('recipes.index')->with('success', 'Recipe deleted successfully.');
     }
 }

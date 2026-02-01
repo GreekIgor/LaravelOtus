@@ -26,7 +26,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Время готовки (минут)</label>
-                            <input type="number" class="form-control" name="time" value="{{ old('time', $recipe->time) }}" required>
+                            <input type="number" class="form-control" name="cooking_time" value="{{ old('cooking_time', $recipe->cooking_time) }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Сложность</label>
@@ -47,10 +47,10 @@
                     <div class="mb-3">
                         <input class="form-control" type="file" name="image" id="imageInput">
                     </div>
-                    @if($recipe->img)
+                    @if($recipe->image_path)
                         <div class="mt-3">
                             <p class="small text-muted">Текущее изображение:</p>
-                            <img src="{{ asset('storage/' . $recipe->img) }}" class="img-thumbnail" style="max-height: 150px;">
+                            <img src="{{ asset($recipe->image_path) }}" class="img-thumbnail" style="max-height: 150px;">
                         </div>
                     @endif
                 </div>
@@ -90,7 +90,7 @@
                         {{-- Вывод существующих ингредиентов при редактировании --}}
                         @php
                             $currentIngredients = old('ingredients', $recipe->ingredients->pluck('id')->toArray() ?? []);
-                            $currentAmounts = old('amounts', $recipe->ingredients->pluck('pivot.amount')->toArray() ?? []);
+                            $currentAmounts = old('quantity', $recipe->ingredients->pluck('pivot.quantity')->toArray() ?? []);
                         @endphp
 
                         @foreach($currentIngredients as $index => $currentId)
