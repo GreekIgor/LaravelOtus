@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 
 class User extends Authenticatable
 {
@@ -67,5 +68,33 @@ class User extends Authenticatable
     public function isViewer(): bool
     {
         return $this->role === self::ROLE_VIEWER;
+    }
+    
+    /**
+     * Boot метод для регистрации событий модели
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Очистка кэша при создании пользователя
+        static::created(function ($user) {
+            Cache::forget('admin.stats');
+            Cache::forget('admin.registrations');
+        });
+        
+        // Очистка кэша при обновлении пользователя
+        // Примечание: очистка top_authors при изменении количества рецептов
+        // обрабатывается в RecipeService при создании/обновлении/удалении рецептов
+        static::updated(function ($user) {
+            Cache::forget('admin.stats');
+            Cache::forget('admin.registrations');
+        });
+        
+        // Очистка кэша при удалении пользователя
+        static::deleted(function ($user) {
+            Cache::forget('admin.stats');
+            Cache::forget('admin.top_authors');
+        });
     }
 }

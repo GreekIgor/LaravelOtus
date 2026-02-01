@@ -8,6 +8,7 @@ use App\Models\Unit;
 use App\Repositories\RecipeRepository;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class RecipeService
 {
@@ -21,11 +22,16 @@ class RecipeService
 
     public function getAllRecipes()
     {
-        return $this->recipeRepository->getAllRecipes();
+        return Cache::remember('recipes.all', 600, function () {
+            return $this->recipeRepository->getAllRecipes();
+        });
     }
+    
     public function getRecipeById($id)
     {
-        return $this->recipeRepository->findById($id);
+        return Cache::remember("recipe.{$id}", 1800, function () use ($id) {
+            return $this->recipeRepository->findById($id);
+        });
     }
 public function createRecipe(array $recipeData)
 {
@@ -52,7 +58,12 @@ public function createRecipe(array $recipeData)
     // Фильтруем массив, чтобы убрать 'ingredients', 'amounts' и 'units'
     $filteredRecipeData = array_intersect_key($recipeData, array_flip($allowedFields));
 
-    return $this->recipeRepository->create($filteredRecipeData, $syncData);
+    $recipe = $this->recipeRepository->create($filteredRecipeData, $syncData);
+    
+    // Очистка кэша после создания рецепта
+    $this->clearRecipeCache();
+    
+    return $recipe;
 }
 public function updateRecipe($id, array $data): Recipe
 {
@@ -77,15 +88,49 @@ public function updateRecipe($id, array $data): Recipe
     }
 
     
-     return $this->recipeRepository->update(
+    $updatedRecipe = $this->recipeRepository->update(
         $recipe, 
         $data, 
         $syncData
     );
+    
+    // Очистка кэша после обновления рецепта
+    $this->clearRecipeCache($id);
+    
+    return $updatedRecipe;
 }
     public function deleteRecipe($id)
     {
-        return $this->recipeRepository->delete($id);
+        $result = $this->recipeRepository->delete($id);
+        
+        // Очистка кэша после удаления рецепта
+        $this->clearRecipeCache($id);
+        
+        return $result;
+    }
+    
+    /**
+     * Очистка кэша рецептов
+     */
+    protected function clearRecipeCache(?int $recipeId = null): void
+    {
+        // Очистка общего списка рецептов
+        Cache::forget('recipes.all');
+        
+        // Очистка конкретного рецепта, если указан ID
+        if ($recipeId) {
+            Cache::forget("recipe.{$recipeId}");
+        }
+        
+        // Очистка кэша списка рецептов с пагинацией (все страницы)
+        // Используем простой подход - очищаем первые 10 страниц
+        for ($page = 1; $page <= 10; $page++) {
+            Cache::forget("recipes.list.page.{$page}");
+        }
+        
+        // Очистка статистики админ-панели
+        Cache::forget('admin.stats');
+        Cache::forget('admin.top_authors');
     }
     
 }

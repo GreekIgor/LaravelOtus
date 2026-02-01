@@ -8,6 +8,7 @@ use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Services\RecipeService;
 use App\Services\IngredientService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class RecipeController extends Controller
@@ -24,7 +25,18 @@ class RecipeController extends Controller
 
 public function showRecipeList()
 {
-        $recipes = Recipe::with(['author', 'ingredients'])->paginate(10);
+        $page = request()->get('page', 1);
+        
+        // Кэшируем первую страницу на 5 минут
+        if ($page == 1) {
+            $recipes = Cache::remember('recipes.list.page.1', 300, function () {
+                return Recipe::with(['author', 'ingredients'])->paginate(10);
+            });
+        } else {
+            // Для остальных страниц не кэшируем (можно добавить при необходимости)
+            $recipes = Recipe::with(['author', 'ingredients'])->paginate(10);
+        }
+        
         return view('recipelist', compact('recipes'));
 }
 

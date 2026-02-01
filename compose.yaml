@@ -24,6 +24,7 @@ services:
         depends_on:
             - mysql
             - redis
+            - memcached
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
@@ -62,6 +63,21 @@ services:
                 - CMD
                 - redis-cli
                 - ping
+            retries: 3
+            timeout: 5s
+    memcached:
+        image: 'memcached:alpine'
+        ports:
+            - '${FORWARD_MEMCACHED_PORT:-11211}:11211'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - nc
+                - -z
+                - localhost
+                - '11211'
             retries: 3
             timeout: 5s
 networks:

@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Models\Ingredient;
 use App\Repositories\IngredientRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 use Storage;
 
 class IngredientService
@@ -17,7 +18,9 @@ class IngredientService
 
     public function getAllIngredients(): Collection
     {
-        return $this->ingredientRepository->getAll();
+        return Cache::remember('ingredients.all', 900, function () {
+            return $this->ingredientRepository->getAll();
+        });
     }
 
     public function getIngredientById($id): ?Ingredient
@@ -30,7 +33,12 @@ class IngredientService
         if (isset($data['img'])) {
             $data['img'] = $data['img']->store('ingredients', 'public');
         }
-        return $this->ingredientRepository->create($data);
+        $ingredient = $this->ingredientRepository->create($data);
+        
+        // Очистка кэша после создания ингредиента
+        $this->clearIngredientCache();
+        
+        return $ingredient;
     }
 
     public function updateIngredient($id, array $data): bool
@@ -44,11 +52,31 @@ class IngredientService
             }
             $data['img'] = $data['img']->store('ingredients', 'public');
         }
-        return $this->ingredientRepository->update($id, $data);
+        $result = $this->ingredientRepository->update($id, $data);
+        
+        // Очистка кэша после обновления ингредиента
+        $this->clearIngredientCache();
+        
+        return $result;
     }
 
     public function deleteIngredient($id): bool|null
     {
-        return $this->ingredientRepository->delete($id);
+        $result = $this->ingredientRepository->delete($id);
+        
+        // Очистка кэша после удаления ингредиента
+        $this->clearIngredientCache();
+        
+        return $result;
+    }
+    
+    /**
+     * Очистка кэша ингредиентов
+     */
+    protected function clearIngredientCache(): void
+    {
+        Cache::forget('ingredients.all');
+        // Также очищаем статистику админ-панели, так как количество ингредиентов изменилось
+        Cache::forget('admin.stats');
     }
 }

@@ -16,9 +16,14 @@ return [
     | Supported: "file", "cookie", "database", "memcached",
     |            "redis", "dynamodb", "array"
     |
+    | Note: Для использования memcached необходимо установить расширение PHP:
+    | - Ubuntu/Debian: sudo apt-get install php-memcached
+    | - CentOS/RHEL: sudo yum install php-memcached
+    | - Windows: раскомментировать extension=memcached в php.ini
+    |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    'driver' => env('SESSION_DRIVER', 'memcached'),
 
     /*
     |--------------------------------------------------------------------------
@@ -99,9 +104,11 @@ return [
     |
     | Affects: "dynamodb", "memcached", "redis"
     |
+    | Note: Для memcached используйте 'memcached' store из config/cache.php
+    |
     */
 
-    'store' => env('SESSION_STORE'),
+    'store' => env('SESSION_STORE', 'memcached'),
 
     /*
     |--------------------------------------------------------------------------

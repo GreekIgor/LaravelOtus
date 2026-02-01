@@ -8,6 +8,7 @@ use App\Models\Recipe;
 use App\Models\Tag;
 use App\Models\User;
 use App\Repositories\RecipeRepository;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -50,25 +51,33 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'ru|en|kz']], func
         Route::get('/', function () {
             // Используем разрешение view-admin-dashboard вместо проверки роли
             Gate::authorize('view-admin-dashboard');
-            // Статистика для карточек
-            $stats = [
-                'users_count' => User::count(),
-                'recipes_count' => Recipe::count(),
-                'ingredients_count' => Ingredient::count(),
-            ];
+            
+            // Статистика для карточек (кэш на 5 минут)
+            $stats = Cache::remember('admin.stats', 300, function () {
+                return [
+                    'users_count' => User::count(),
+                    'recipes_count' => Recipe::count(),
+                    'ingredients_count' => Ingredient::count(),
+                ];
+            });
 
-            // Данные для графика регистрации (за последние 7 дней)
-            $registrations = User::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-                ->where('created_at', '>=', now()->subDays(7))
-                ->groupBy('date')
-                ->orderBy('date')
-                ->get();
+            // Данные для графика регистрации (за последние 7 дней, кэш на 10 минут)
+            $registrations = Cache::remember('admin.registrations', 600, function () {
+                return User::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                    ->where('created_at', '>=', now()->subDays(7))
+                    ->groupBy('date')
+                    ->orderBy('date')
+                    ->get();
+            });
 
-            // ТОП-10 авторов (по количеству рецептов)
-            $topAuthors = User::withCount('recipes')
-                ->orderBy('recipes_count', 'desc')
-                ->take(10)
-                ->get();
+            // ТОП-10 авторов (по количеству рецептов, кэш на 15 минут)
+            $topAuthors = Cache::remember('admin.top_authors', 900, function () {
+                return User::withCount('recipes')
+                    ->orderBy('recipes_count', 'desc')
+                    ->take(10)
+                    ->get();
+            });
+            
             return view('admin.dashboard', compact('stats', 'registrations', 'topAuthors'));
         })->name('admin.dashboard');
 
