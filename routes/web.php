@@ -38,9 +38,8 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
 
   
     Route::get('/', function () {
-          if (!Gate::allows('isAdmin')){
-                abort(403);
-            }
+          // Используем разрешение view-admin-dashboard вместо проверки роли
+          Gate::authorize('view-admin-dashboard');
         // Статистика для карточек
     $stats = [
         'users_count' => User::count(),
@@ -90,11 +89,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-// Ваши маршруты ингредиентов (добавьте их в эту же или отдельную группу)
-Route::middleware(['auth', 'isAdmin'])->group(function () {
-    Route::resource('ingredients', IngredientController::class);
 });
 
 

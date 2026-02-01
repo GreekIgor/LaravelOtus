@@ -20,10 +20,8 @@ class IngredientController extends Controller
 
     public function index(Request $request)
     {
-        // Проверка прав доступа в самом начале
-        if (!Gate::allows('isAdmin')) {
-            abort(403, 'Доступ запрещен');
-        }
+        // Используем разрешение manage-ingredients вместо проверки роли
+        Gate::authorize('manage-ingredients');
 
         if ($request->ajax()) {
             $query = Ingredient::with('unit')->select('ingredients.*');
@@ -59,6 +57,7 @@ class IngredientController extends Controller
 
     public function store(IngredientRequest $request)
     {
+        Gate::authorize('manage-ingredients');
         $ingredient = $this->ingredientService->createIngredient($request->validated());
         
         if ($request->ajax()) {
@@ -73,6 +72,7 @@ class IngredientController extends Controller
 
     public function update(IngredientRequest $request, string $id)
     {
+        Gate::authorize('manage-ingredients');
         $this->ingredientService->updateIngredient($id, $request->validated());
 
         if ($request->ajax()) {
@@ -87,6 +87,7 @@ class IngredientController extends Controller
 
     public function destroy(string $id)
     {
+        Gate::authorize('manage-ingredients');
         $this->ingredientService->deleteIngredient($id);
 
         if (request()->ajax()) {

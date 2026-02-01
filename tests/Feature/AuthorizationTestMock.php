@@ -125,7 +125,7 @@ class AuthorizationTestMock extends TestCase
         $viewer = User::factory()->make(['role' => 'viewer']);
 
         $this->mock(Gate::class, function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(false);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(false);
         });
 
         $response = $this->actingAs($viewer)->get('/admin/recipes');
@@ -140,12 +140,41 @@ class AuthorizationTestMock extends TestCase
         $admin = User::factory()->make(['role' => 'admin']);
 
         $this->mock(Gate::class, function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(true);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(true);
         });
 
         $response = $this->actingAs($admin)->get('/admin/recipes');
 
         $response->assertStatus(200);
+    }
+
+    #[Test()]
+    #[TestDox('Проверка разрешения create-recipes для админа')]
+    public function test_admin_can_create_recipes_with_mock(): void
+    {
+        $admin = User::factory()->make(['role' => 'admin']);
+
+        $this->assertTrue(Gate::forUser($admin)->allows('create-recipes'));
+    }
+
+    #[Test()]
+    #[TestDox('Проверка разрешения create-recipes для модератора')]
+    public function test_moderator_can_create_recipes_with_mock(): void
+    {
+        $moderator = User::factory()->make(['role' => 'moderator']);
+
+        $this->assertTrue(Gate::forUser($moderator)->allows('create-recipes'));
+    }
+
+    #[Test()]
+    #[TestDox('Проверка разрешения manage-ingredients только для админа')]
+    public function test_only_admin_can_manage_ingredients_with_mock(): void
+    {
+        $admin = User::factory()->make(['role' => 'admin']);
+        $moderator = User::factory()->make(['role' => 'moderator']);
+
+        $this->assertTrue(Gate::forUser($admin)->allows('manage-ingredients'));
+        $this->assertFalse(Gate::forUser($moderator)->allows('manage-ingredients'));
     }
 }
 

@@ -21,7 +21,7 @@ class AdminDashboardTestMock extends TestCase
         $viewer = User::factory()->make(['role' => 'viewer']);
 
         $this->mock('gate', function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(false);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(false);
         });
 
         $response = $this->actingAs($viewer)->get('/admin');
@@ -36,7 +36,7 @@ class AdminDashboardTestMock extends TestCase
         $admin = User::factory()->make(['role' => 'admin']);
 
         $this->mock('gate', function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(true);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(true);
         });
 
         $this->mock(User::class, function (MockInterface $mock) {
@@ -63,7 +63,7 @@ class AdminDashboardTestMock extends TestCase
         $admin = User::factory()->make(['role' => 'admin']);
 
         $this->mock('gate', function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(true);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(true);
         });
 
         $userMock = Mockery::mock('alias:' . User::class);
@@ -112,7 +112,7 @@ class AdminDashboardTestMock extends TestCase
         $admin = User::factory()->make(['role' => 'admin']);
 
         $this->mock('gate', function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(true);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(true);
         });
 
         $this->mock(User::class, function (MockInterface $mock) {
@@ -146,7 +146,7 @@ class AdminDashboardTestMock extends TestCase
         $admin = User::factory()->make(['role' => 'admin']);
 
         $this->mock('gate', function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(true);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(true);
         });
 
         $mockData = collect([
@@ -196,7 +196,7 @@ class AdminDashboardTestMock extends TestCase
         $admin = User::factory()->make(['role' => 'admin']);
 
         $this->mock('gate', function (MockInterface $mock) {
-            $mock->shouldReceive('allows')->with('isAdmin')->andReturn(true);
+            $mock->shouldReceive('allows')->with('view-admin-dashboard')->andReturn(true);
         });
 
         $topAuthors = collect([

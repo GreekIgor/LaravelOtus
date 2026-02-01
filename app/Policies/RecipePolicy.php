@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Recipe;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Gate;
 
 class RecipePolicy
 {
@@ -29,7 +30,8 @@ class RecipePolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isModerator();
+        // Используем разрешение create-recipes вместо проверки ролей
+        return Gate::forUser($user)->allows('create-recipes');
     }
 
     /**
@@ -37,15 +39,8 @@ class RecipePolicy
      */
     public function update(User $user, Recipe $recipe): bool
     {
-       if($user->isAdmin()) {
-            return true;
-        }
-
-        if($user->isModerator() && $recipe->user_id === $user->id) {
-            return true;
-        }
-
-        return false;
+        // Используем разрешение edit-own-recipes вместо проверки ролей
+        return Gate::forUser($user)->allows('edit-own-recipes', $recipe);
     }
 
     /**
@@ -53,7 +48,8 @@ class RecipePolicy
      */
     public function delete(User $user, Recipe $recipe): bool
     {
-        return $user->isAdmin();
+        // Используем разрешение delete-recipes вместо проверки роли
+        return Gate::forUser($user)->allows('delete-recipes');
     }
 
     /**

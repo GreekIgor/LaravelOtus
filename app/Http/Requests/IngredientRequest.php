@@ -12,7 +12,7 @@ class IngredientRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Gate::allows('isAdmin');
+        return Gate::allows('manage-ingredients');
     }
 
     /**

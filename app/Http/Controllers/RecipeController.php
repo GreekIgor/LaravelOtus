@@ -39,14 +39,16 @@ public function showRecipeEdit(int $recipeID){
     $recipe = $this->recipeService->getRecipeById($recipeID);
     $ingredients = $this->ingredientService->getAllIngredients();
     $units = Unit::all();
-    Gate::authorize('update', $recipe);
+    // Используем разрешение edit-own-recipes вместо Policy update
+    Gate::authorize('edit-own-recipes', $recipe);
     return view('recipe.edit', compact('recipe', 'ingredients', 'units'));
 }
 
 
 public function showRecipeCreate(){
     $recipe = new Recipe();
-    Gate::authorize('create', Recipe::class);
+    // Используем разрешение create-recipes
+    Gate::authorize('create-recipes');
     $ingredients = $this->ingredientService->getAllIngredients();
     $units = Unit::all();
     return view('recipe.edit', compact('recipe', 'ingredients', 'units'));
@@ -106,9 +108,8 @@ public function index(Request $request)
         ]);
     }
 
-    if(!Gate::allows('isAdmin')) {
-        abort(403, 'Доступ запрещен');
-    }
+    // Используем разрешение view-admin-dashboard вместо проверки роли
+    Gate::authorize('view-admin-dashboard');
     return view('admin.recipes.index');
 }
 
@@ -132,6 +133,7 @@ private function renderActions($recipe) {
      */
     public function create()
     {
+        Gate::authorize('create-recipes');
         $ingredients = $this->ingredientService->getAllIngredients();
         $units = Unit::all();
         $recipe = new Recipe();
@@ -143,7 +145,7 @@ private function renderActions($recipe) {
      */
     public function store(Request $request)
     {
-    
+        Gate::authorize('create-recipes');
         $recipe = $this->recipeService->createRecipe(array_merge(['user_id'=>auth()->id()],$request->all()));
         return redirect()->route('recipe-edit', $recipe->id);
     }
@@ -163,6 +165,8 @@ private function renderActions($recipe) {
     public function edit(string $id)
     {
         $recipe = $this->recipeService->getRecipeById($id);
+        // Используем разрешение edit-own-recipes
+        Gate::authorize('edit-own-recipes', $recipe);
         $ingredients = $this->ingredientService->getAllIngredients();
         $units = Unit::all();
         return view('admin.recipes.edit', compact('recipe', 'ingredients', 'units'));
@@ -173,7 +177,8 @@ private function renderActions($recipe) {
      */
     public function update(RecipeRequest $request, string $id)
     {
-
+        $recipe = $this->recipeService->getRecipeById($id);
+        Gate::authorize('edit-own-recipes', $recipe);
         $this->recipeService->updateRecipe($id, $request->validated());
         return redirect()->route('recipe-edit', $id)->with('success', 'Recipe updated successfully.');
     }
@@ -183,6 +188,7 @@ private function renderActions($recipe) {
      */
     public function destroy(string $id)
     {
+        Gate::authorize('delete-recipes');
         $this->recipeService->deleteRecipe($id);
         return redirect()->route('recipes.index')->with('success', 'Recipe deleted successfully.');
     }
