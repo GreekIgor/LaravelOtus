@@ -147,7 +147,8 @@ private function renderActions($recipe) {
     {
         Gate::authorize('create-recipes');
         $recipe = $this->recipeService->createRecipe(array_merge(['user_id'=>auth()->id()],$request->all()));
-        return redirect()->route('recipe-edit', $recipe->id);
+        $locale = app()->getLocale();
+        return redirect()->route('recipe-edit', ['locale' => $locale, 'recipe' => $recipe->id]);
     }
 
     /**
@@ -180,7 +181,8 @@ private function renderActions($recipe) {
         $recipe = $this->recipeService->getRecipeById($id);
         Gate::authorize('edit-own-recipes', $recipe);
         $this->recipeService->updateRecipe($id, $request->validated());
-        return redirect()->route('recipe-edit', $id)->with('success', 'Recipe updated successfully.');
+        $locale = app()->getLocale();
+        return redirect()->route('recipe-edit', ['locale' => $locale, 'recipe' => $id])->with('success', 'Recipe updated successfully.');
     }
 
     /**
@@ -190,6 +192,7 @@ private function renderActions($recipe) {
     {
         Gate::authorize('delete-recipes');
         $this->recipeService->deleteRecipe($id);
-        return redirect()->route('recipes.index')->with('success', 'Recipe deleted successfully.');
+        $locale = app()->getLocale();
+        return redirect()->route('recipes.index', ['locale' => $locale])->with('success', 'Recipe deleted successfully.');
     }
 }

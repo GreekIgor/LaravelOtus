@@ -45,7 +45,7 @@
 
     <div class="row">
         <div class="col-lg-3">
-            <form action="{{ route('recipes.list') }}" method="GET">
+            <form action="{{ route('recipes.list', ['locale' => app()->getLocale()]) }}" method="GET">
                 <div class="card p-3 sticky-sidebar shadow-sm border-0">
                     <h5 class="card-title mb-3"><i class="bi bi-funnel-fill me-2 text-primary"></i> Фильтры</h5>
                     
@@ -81,7 +81,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Применить</button>
-                    <a href="{{ route('recipes.list') }}" class="btn btn-link btn-sm w-100 mt-2 text-decoration-none text-muted">Сбросить всё</a>
+                    <a href="{{ route('recipes.list', ['locale' => app()->getLocale()]) }}" class="btn btn-link btn-sm w-100 mt-2 text-decoration-none text-muted">Сбросить всё</a>
                 </div>
             </form>
         </div>
@@ -92,7 +92,7 @@
                 <div class="col">
                     <div class="card recipe-card shadow-sm border-0">
                         @can('update', $recipe)
-                            <a href="{{ route('recipe-edit' , $recipe->id) }}" class="edit-badge" title="Редактировать">
+                            <a href="{{ route('recipe-edit', ['locale' => app()->getLocale(), 'recipe' => $recipe->id]) }}" class="edit-badge" title="Редактировать">
                                 <i class="bi bi-pencil-fill"></i>
                             </a>
                         @endcan
@@ -109,7 +109,7 @@
                                 <i class="bi bi-egg-fried me-1"></i> 
                                 {{ $recipe->ingredients->pluck('name')->take(3)->implode(', ') }}...
                             </p>
-                            <a href="{{ route('recipe.detail', $recipe->id) }}" class="btn btn-sm btn-outline-primary mt-auto w-100">Открыть рецепт</a>
+                            <a href="{{ route('recipe.detail', ['locale' => app()->getLocale(), 'recipe' => $recipe->id]) }}" class="btn btn-sm btn-outline-primary mt-auto w-100">Открыть рецепт</a>
                         </div>
                     </div>
                 </div>

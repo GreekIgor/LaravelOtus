@@ -34,7 +34,8 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        $locale = app()->getLocale();
+        return Redirect::route('profile.edit', ['locale' => $locale])->with('status', 'profile-updated');
     }
 
     /**
@@ -55,6 +56,7 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        $locale = app()->getLocale();
+        return Redirect::to("/{$locale}");
     }
 }

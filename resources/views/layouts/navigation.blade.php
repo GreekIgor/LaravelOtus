@@ -11,10 +11,10 @@
 
         <div class="collapse navbar-collapse" id="navContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ route('recipes.list') }}">Все рецепты</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('recipes.list', ['locale' => app()->getLocale()]) }}">Все рецепты</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Категории</a></li>
                 @can('create', App\Models\Recipe::class)
-                <li class="nav-item"><a class="nav-link" href="{{ route('recipe-create') }}">Добавить рецепт</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('recipe-create', ['locale' => app()->getLocale()]) }}">Добавить рецепт</a></li>
                 @endcan
             </ul>
 
@@ -48,14 +48,14 @@
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Аккаунт</a></li>
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}#change-password"><i class="bi bi-shield-lock me-2"></i>Сменить пароль</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile.edit', ['locale' => app()->getLocale()]) }}"><i class="bi bi-person me-2"></i>Аккаунт</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile.edit', ['locale' => app()->getLocale()]) }}#change-password"><i class="bi bi-shield-lock me-2"></i>Сменить пароль</a></li>
                             @if(Auth::user()->is_admin) {{-- Если есть флаг админа --}}
                                 <li><a class="dropdown-item" href="/admin"><i class="bi bi-speedometer2 me-2"></i>Админка</a></li>
                             @endif
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form method="POST" action="{{ route('logout') }}" id="app-logout-form">
+                                <form method="POST" action="{{ route('logout', ['locale' => app()->getLocale()]) }}" id="app-logout-form">
                                     @csrf
                                     <button type="submit" class="dropdown-item text-danger">
                                         <i class="bi bi-box-arrow-right me-2"></i>Выход
@@ -65,8 +65,8 @@
                         </ul>
                     </div>
                 @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary me-2">Вход</a>
-                    <a href="{{ route('register') }}" class="btn btn-primary">Регистрация</a>
+                    <a href="{{ route('login', ['locale' => app()->getLocale()]) }}" class="btn btn-outline-primary me-2">Вход</a>
+                    <a href="{{ route('register', ['locale' => app()->getLocale()]) }}" class="btn btn-primary">Регистрация</a>
                 @endauth
             </div>
         </div>

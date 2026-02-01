@@ -134,19 +134,39 @@ $(document).ready(function() {
 
 
 // Показать лончер при начале любого AJAX-запроса
+    let overlayTimeout;
     $(document).ajaxStart(function() {
         $('#loader-overlay').fadeIn(200);
+        // Очистить предыдущий таймаут
+        clearTimeout(overlayTimeout);
+        // Автоматически скрыть overlay через 30 секунд (на случай зависших запросов)
+        overlayTimeout = setTimeout(function() {
+            $('#loader-overlay').fadeOut(200);
+        }, 30000);
     });
 
     // Скрыть лончер после завершения запроса (даже если была ошибка)
     $(document).ajaxStop(function() {
+        clearTimeout(overlayTimeout);
+        $('#loader-overlay').fadeOut(200);
+    });
+
+    // Скрыть overlay при ошибке AJAX
+    $(document).ajaxError(function() {
+        clearTimeout(overlayTimeout);
+        $('#loader-overlay').fadeOut(200);
+    });
+
+    // Скрыть overlay при завершении запроса (включая ошибки)
+    $(document).ajaxComplete(function() {
+        clearTimeout(overlayTimeout);
         $('#loader-overlay').fadeOut(200);
     });
 
     const table = $('#ingredientsTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: "{{ route('ingredients.index') }}",
+        ajax: "{{ route('ingredients.index', ['locale' => app()->getLocale()]) }}",
         columns: [
             { data: 'id', name: 'id' },
             { 
@@ -197,6 +217,12 @@ $(document).ready(function() {
     handleFormSubmit('#addForm', '#addIngredientModal');
     handleFormSubmit('#editForm', '#editIngredientModal');
 });
+
+// Глобальная функция для ручного скрытия overlay через консоль браузера (для отладки)
+window.hideLoaderOverlay = function() {
+    $('#loader-overlay').fadeOut(200);
+    console.log('Loader overlay manually hidden');
+};
 
 // УДАЛЕНИЕ
 function confirmDelete(url) {

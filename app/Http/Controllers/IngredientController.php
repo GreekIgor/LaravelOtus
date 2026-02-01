@@ -67,7 +67,8 @@ class IngredientController extends Controller
             ]);
         }
 
-        return redirect()->route('ingredients.index')->with('success', 'Создано успешно');
+        $locale = app()->getLocale();
+        return redirect()->route('ingredients.index', ['locale' => $locale])->with('success', 'Создано успешно');
     }
 
     public function update(IngredientRequest $request, string $id)
@@ -82,7 +83,8 @@ class IngredientController extends Controller
             ]);
         }
 
-        return redirect()->route('ingredients.index')->with('success', 'Обновлено успешно');
+        $locale = app()->getLocale();
+        return redirect()->route('ingredients.index', ['locale' => $locale])->with('success', 'Обновлено успешно');
     }
 
     public function destroy(string $id)
@@ -97,6 +99,7 @@ class IngredientController extends Controller
             ]);
         }
 
-        return redirect()->route('ingredients.index')->with('success', 'Удалено успешно'); 
+        $locale = app()->getLocale();
+        return redirect()->route('ingredients.index', ['locale' => $locale])->with('success', 'Удалено успешно'); 
     }
 }
