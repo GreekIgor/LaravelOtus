@@ -12,7 +12,7 @@
     <div class="card shadow border-0">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="m-0 font-weight-bold text-primary">Список рецептов</h5>
-            <a href="{{ route('recipes.create', ['locale' => app()->getLocale()]) }}" class="btn btn-sm btn-success">+ Создать</a>
+            <a href="{{ route('recipes.create') }}" class="btn btn-sm btn-success">+ Создать</a>
         </div>
         <div class="card-body">
             <table id="serverRecipesTable" class="table table-hover w-100">
@@ -36,7 +36,7 @@ $(document).ready(function() {
         processing: true,
         serverSide: true, // Ключевой параметр для работы через бэкенд
         ajax: {
-            url: "{{ route('recipes.index', ['locale' => app()->getLocale()]) }}",
+            url: "{{ route('recipes.index') }}",
             type: "GET"
         },
         columns: [

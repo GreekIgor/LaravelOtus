@@ -18,8 +18,7 @@
 
 @php
     $isEdit = isset($recipe) && $recipe->id;
-    $locale = app()->getLocale();
-    $route = $isEdit ? route('recipe-edit', ['locale' => $locale, 'recipe' => $recipe->id]) : route('recipe-store', ['locale' => $locale]);
+    $route = $isEdit ? route('recipe-edit', ['recipe' => $recipe->id]) : route('recipe-store');
 @endphp
 
 <div class="container py-5">
@@ -184,7 +183,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mb-5">
-                    <a href="{{ route('recipes.list', ['locale' => app()->getLocale()]) }}" class="btn btn-light btn-lg">Отмена</a>
+                    <a href="{{ route('recipes.list') }}" class="btn btn-light btn-lg">Отмена</a>
                     <button type="submit" class="btn btn-primary btn-lg shadow">
                         <i class="bi bi-check-lg me-2"></i> {{ $isEdit ? 'Сохранить изменения' : 'Создать рецепт' }}
                     </button>

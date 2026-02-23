@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Middleware для установки локали на основе префикса в URL
+ * Middleware для установки локали на основе сессии, cookie или заголовков браузера
  * Соответствует PSR-7 и PSR-15 через Laravel's Request/Response
  */
 class SetLocale
@@ -42,26 +42,24 @@ class SetLocale
         $supportedLocales = array_keys(config('locales.supported', []));
         $defaultLocale = config('locales.default', 'ru');
         
-        // Метод 1: Из URL (первый сегмент пути)
-        $path = trim($request->path(), '/');
-        $segments = explode('/', $path);
-        
-        if (!empty($segments[0]) && in_array($segments[0], $supportedLocales)) {
-            return $segments[0];
-        }
-        
-        // Метод 2: Из параметра маршрута {locale}
-        $localeFromRoute = $request->route('locale');
-        if ($localeFromRoute && in_array($localeFromRoute, $supportedLocales)) {
-            return $localeFromRoute;
-        }
-        
-        // Метод 3: Из сессии
+        // Метод 1: Из сессии (приоритет)
         if (config('locales.store_in_session', true)) {
             $localeFromSession = Session::get(config('locales.session_key', 'app_locale'));
             if ($localeFromSession && in_array($localeFromSession, $supportedLocales)) {
                 return $localeFromSession;
             }
+        }
+        
+        // Метод 2: Из cookie (если есть)
+        $localeFromCookie = $request->cookie('app_locale');
+        if ($localeFromCookie && in_array($localeFromCookie, $supportedLocales)) {
+            return $localeFromCookie;
+        }
+        
+        // Метод 3: Из заголовков браузера (Accept-Language)
+        $localeFromBrowser = $request->getPreferredLanguage($supportedLocales);
+        if ($localeFromBrowser) {
+            return $localeFromBrowser;
         }
         
         // Метод 4: Дефолтная локаль

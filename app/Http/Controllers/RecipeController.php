@@ -23,32 +23,82 @@ class RecipeController extends Controller
     }
 
 
-public function showRecipeList()
+public function showRecipeList(Request $request)
 {
-        $page = request()->get('page', 1);
+        // Начинаем построение запроса
+        $query = Recipe::with(['author', 'ingredients']);
         
-        // Кэшируем первую страницу на 5 минут
-        if ($page == 1) {
-            $recipes = Cache::remember('recipes.list.page.1', 300, function () {
-                return Recipe::with(['author', 'ingredients'])->paginate(10);
+        // Фильтр по названию
+        if ($request->filled('name')) {
+            $query->where('title', 'LIKE', '%' . $request->input('name') . '%');
+        }
+        
+        // Фильтр по ингредиентам
+        if ($request->filled('ingredients')) {
+            $ingredientNames = array_map('trim', explode(',', $request->input('ingredients')));
+            $query->whereHas('ingredients', function($q) use ($ingredientNames) {
+                $q->where(function($subQuery) use ($ingredientNames) {
+                    foreach ($ingredientNames as $name) {
+                        $subQuery->orWhere('name', 'LIKE', '%' . $name . '%');
+                    }
+                });
+            });
+        }
+        
+        // Фильтр по сложности
+        if ($request->filled('difficulty') && is_array($request->input('difficulty'))) {
+            $query->whereIn('difficulty', $request->input('difficulty'));
+        }
+        
+        // Фильтр по времени готовки
+        if ($request->filled('time')) {
+            $timeFilter = $request->input('time');
+            switch ($timeFilter) {
+                case 'быстро':
+                    $query->where('cooking_time', '<=', 30);
+                    break;
+                case 'средне':
+                    $query->whereBetween('cooking_time', [31, 60]);
+                    break;
+                case 'долго':
+                    $query->where('cooking_time', '>', 60);
+                    break;
+            }
+        }
+        
+        // Проверяем, есть ли активные фильтры
+        $hasFilters = $request->filled('name') || 
+                     $request->filled('ingredients') || 
+                     ($request->filled('difficulty') && is_array($request->input('difficulty')) && count($request->input('difficulty')) > 0) ||
+                     $request->filled('time');
+        
+        // Добавляем сортировку по умолчанию
+        $query->orderBy('created_at', 'desc');
+        
+        // Кэшируем только если нет фильтров и это первая страница
+        $page = $request->get('page', 1);
+        if (!$hasFilters && $page == 1) {
+            $recipes = Cache::remember('recipes.list.page.1', 300, function () use ($query) {
+                return $query->paginate(10)->withQueryString();
             });
         } else {
-            // Для остальных страниц не кэшируем (можно добавить при необходимости)
-            $recipes = Recipe::with(['author', 'ingredients'])->paginate(10);
+            // При наличии фильтров или других страницах не кэшируем
+            $recipes = $query->paginate(10)->withQueryString();
         }
         
         return view('recipelist', compact('recipes'));
 }
 
-public function showRecipe(int $recipeID){
-
-   $recipe = $this->recipeService->getRecipeById($recipeID);
+public function showRecipe(Recipe $recipe){
+   // Используем route model binding - Laravel автоматически резолвит модель
+   $recipe = $this->recipeService->getRecipeById($recipe->id);
    return view('Recipe', compact('recipe'));
 }
 
 
-public function showRecipeEdit(int $recipeID){
-    $recipe = $this->recipeService->getRecipeById($recipeID);
+public function showRecipeEdit(Recipe $recipe){
+    // Используем route model binding - Laravel автоматически резолвит модель
+    $recipe = $this->recipeService->getRecipeById($recipe->id);
     $ingredients = $this->ingredientService->getAllIngredients();
     $units = Unit::all();
     // Используем разрешение edit-own-recipes вместо Policy update
@@ -159,8 +209,7 @@ private function renderActions($recipe) {
     {
         Gate::authorize('create-recipes');
         $recipe = $this->recipeService->createRecipe(array_merge(['user_id'=>auth()->id()],$request->all()));
-        $locale = app()->getLocale();
-        return redirect()->route('recipe-edit', ['locale' => $locale, 'recipe' => $recipe->id]);
+        return redirect()->route('recipe-edit', ['recipe' => $recipe->id]);
     }
 
     /**
@@ -188,13 +237,12 @@ private function renderActions($recipe) {
     /**
      * Update the specified resource in storage.
      */
-    public function update(RecipeRequest $request, string $id)
+    public function update(RecipeRequest $request, Recipe $recipe)
     {
-        $recipe = $this->recipeService->getRecipeById($id);
+        // Используем route model binding - Laravel автоматически резолвит модель
         Gate::authorize('edit-own-recipes', $recipe);
-        $this->recipeService->updateRecipe($id, $request->validated());
-        $locale = app()->getLocale();
-        return redirect()->route('recipe-edit', ['locale' => $locale, 'recipe' => $id])->with('success', 'Recipe updated successfully.');
+        $this->recipeService->updateRecipe($recipe->id, $request->validated());
+        return redirect()->route('recipe-edit', ['recipe' => $recipe->id])->with('success', 'Recipe updated successfully.');
     }
 
     /**
@@ -204,7 +252,6 @@ private function renderActions($recipe) {
     {
         Gate::authorize('delete-recipes');
         $this->recipeService->deleteRecipe($id);
-        $locale = app()->getLocale();
-        return redirect()->route('recipes.index', ['locale' => $locale])->with('success', 'Recipe deleted successfully.');
+        return redirect()->route('recipes.index')->with('success', 'Recipe deleted successfully.');
     }
 }

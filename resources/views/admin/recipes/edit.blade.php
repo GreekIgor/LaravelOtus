@@ -9,7 +9,7 @@
                 {{ $recipe->id ? 'Редактирование: ' . $recipe->title : 'Создание нового рецепта' }}
             </h1>
             
-            <form action="{{ $recipe->id ? route('recipes.update', ['locale' => app()->getLocale(), 'recipe' => $recipe->id]) : route('recipes.store', ['locale' => app()->getLocale()]) }}" 
+            <form action="{{ $recipe->id ? route('recipes.update', ['recipe' => $recipe->id]) : route('recipes.store') }}" 
                   method="POST" 
                   enctype="multipart/form-data">
                 
@@ -140,7 +140,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mb-5">
-                    <a href="{{ route('recipes.index', ['locale' => app()->getLocale()]) }}" class="btn btn-light btn-lg">Отмена</a>
+                    <a href="{{ route('recipes.index') }}" class="btn btn-light btn-lg">Отмена</a>
                     <button type="submit" class="btn btn-primary btn-lg shadow">
                         <i class="bi bi-check-lg me-2"></i> {{ $recipe->id ? 'Сохранить изменения' : 'Создать рецепт' }}
                     </button>

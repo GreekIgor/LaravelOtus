@@ -11,9 +11,8 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
-// Группа маршрутов авторизации с префиксом локали
-Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'ru|en|kz']], function () {
-    Route::middleware('guest')->group(function () {
+// Группа маршрутов авторизации
+Route::middleware('guest')->group(function () {
         Route::get('register', [RegisteredUserController::class, 'create'])
             ->name('register');
 
@@ -59,4 +58,3 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'ru|en|kz']], func
         Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
             ->name('logout');
     });
-});

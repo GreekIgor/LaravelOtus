@@ -169,12 +169,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('recipes.index', ['locale' => app()->getLocale()]) }}" class="nav-link {{ request()->is('admin/recipes*') ? 'active' : '' }}">
+                <a href="{{ route('recipes.index') }}" class="nav-link {{ request()->is('admin/recipes*') ? 'active' : '' }}">
                     <i class="bi bi-journal-text"></i> <span>Рецепты</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('ingredients.index', ['locale' => app()->getLocale()]) }}" class="nav-link {{ request()->is('admin/ingredients*') ? 'active' : '' }}">
+                <a href="{{ route('ingredients.index') }}" class="nav-link {{ request()->is('admin/ingredients*') ? 'active' : '' }}">
                     <i class="bi bi-egg-fried"></i> <span>Ингредиенты</span>
                 </a>
             </li>
@@ -242,9 +242,9 @@
                         <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Настройки</a></li>
                         <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form method="POST" action="{{ route('logout', ['locale' => app()->getLocale()]) }}" id="logout-form">
+                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
                             @csrf
-                            <a class="dropdown-item text-danger" href="{{ route('logout', ['locale' => app()->getLocale()]) }}"
+                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i class="bi bi-box-arrow-right me-2"></i>Выход
                             </a>

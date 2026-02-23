@@ -166,7 +166,7 @@ $(document).ready(function() {
     const table = $('#ingredientsTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: "{{ route('ingredients.index', ['locale' => app()->getLocale()]) }}",
+        ajax: "{{ route('ingredients.index') }}",
         columns: [
             { data: 'id', name: 'id' },
             { 

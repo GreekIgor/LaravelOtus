@@ -31,17 +31,15 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         // Используем проверку разрешений
-        $locale = app()->getLocale();
-        
         if (Gate::forUser($user)->allows('view-admin-dashboard')) {
-            return redirect()->intended(route('admin.dashboard', ['locale' => $locale], absolute: false));
+            return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 
         if (Gate::forUser($user)->allows('create-recipes')) {
-            return redirect()->intended(route('recipes.list', ['locale' => $locale], absolute: false));
+            return redirect()->intended(route('recipes.list', absolute: false));
         }
 
-        return redirect("/{$locale}");
+        return redirect('/');
     }
 
     /**
@@ -55,6 +53,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('home');
     }
 }
