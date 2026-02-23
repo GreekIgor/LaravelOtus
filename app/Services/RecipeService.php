@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Events\RecipeCreated;
+use App\Events\RecipeUpdated;
 use App\Models\Ingredient;
 use App\Models\Recipe;
 use App\Models\Unit;
@@ -60,6 +62,12 @@ public function createRecipe(array $recipeData)
 
     $recipe = $this->recipeRepository->create($filteredRecipeData, $syncData);
     
+    // Загружаем отношения для события
+    $recipe->load('author');
+    
+    // Публикуем событие в очередь RabbitMQ
+    event(new RecipeCreated($recipe));
+    
     // Очистка кэша после создания рецепта
     $this->clearRecipeCache();
     
@@ -93,6 +101,12 @@ public function updateRecipe($id, array $data): Recipe
         $data, 
         $syncData
     );
+    
+    // Загружаем отношения для события
+    $updatedRecipe->load('author');
+    
+    // Публикуем событие в очередь RabbitMQ
+    event(new RecipeUpdated($updatedRecipe));
     
     // Очистка кэша после обновления рецепта
     $this->clearRecipeCache($id);
