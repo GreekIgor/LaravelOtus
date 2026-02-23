@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "875637e95550fdb35f201fe86ea67227",
+    "content-hash": "6601c2cad2e85e5cbc3b5b79fabe9c89",
     "packages": [
         {
             "name": "brick/math",
@@ -719,6 +719,68 @@
                 }
             ],
             "time": "2024-07-20T21:45:45+00:00"
+        },
+        {
+            "name": "greekasoft/plan_cooking_calendar",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/GreekIgor/packade-book-recipe.git",
+                "reference": "293f59f918c572ef18dc92cfb51ca91e1d269f83"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/GreekIgor/packade-book-recipe/zipball/293f59f918c572ef18dc92cfb51ca91e1d269f83",
+                "reference": "293f59f918c572ef18dc92cfb51ca91e1d269f83",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^11.0|^12.0",
+                "illuminate/http": "^11.0|^12.0",
+                "illuminate/routing": "^11.0|^12.0",
+                "illuminate/support": "^11.0|^12.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0|^11.0",
+                "phpunit/phpunit": "^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Greekasoft\\PlanCookingCalendar\\PlanCookingCalendarServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Greekasoft\\PlanCookingCalendar\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Igor Morozov",
+                    "email": "GreekIgor87@gmail.com"
+                }
+            ],
+            "description": "Laravel пакет для планирования блюд по календарю",
+            "keywords": [
+                "calendar",
+                "cooking",
+                "laravel",
+                "planning",
+                "recipe"
+            ],
+            "support": {
+                "issues": "https://github.com/GreekIgor/packade-book-recipe/issues",
+                "source": "https://github.com/GreekIgor/packade-book-recipe/tree/1.0.0"
+            },
+            "time": "2026-02-23T08:16:42+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
