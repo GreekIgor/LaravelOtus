@@ -3,6 +3,7 @@
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\View;
 use App\Http\Controllers\RecipeController;
 use App\Models\Ingredient;
 use App\Models\Recipe;
@@ -89,6 +90,11 @@ Route::get('/dbrecipe', function () {
     dd(Tag::all());
     return '<h1>Debugbar test</h1>';
 })->name('dbrecipe');
+
+// Swagger UI для документации API
+Route::get('/api/docs', function () {
+    return view('api-docs');
+})->name('api.docs');
 
 // Группа маршрутов, защищенных аутентификацией
 Route::middleware(['auth', 'verified'])->group(function () {

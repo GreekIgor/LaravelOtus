@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: Recipes API
+  version: 1.0.0
+  description: >
+    CRUD API для работы с рецептами (v1).
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: API Token
+
+  schemas:
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        instructions:
+          type: string
+        difficulty:
+          type: string
+        cooking_time:
+          type: integer
+        image_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+paths:
+  /auth/login:
+    post:
+      summary: Логин и получение токена
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Успешная аутентификация
+        '422':
+          description: Неверные данные
+
+  /recipes:
+    get:
+      summary: Список рецептов
+      tags: [Recipes]
+      parameters:
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Фильтр по названию
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+
+    post:
+      summary: Создать рецепт
+      tags: [Recipes]
+      security:
+        - BearerToken: []
+      responses:
+        '201':
+          description: Рецепт создан
+
+  /recipes/{id}:
+    get:
+      summary: Получить рецепт по ID
+      tags: [Recipes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: ОК
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404':
+          description: Не найдено
+
+    put:
+      summary: Обновить рецепт
+      tags: [Recipes]
+      security:
+        - BearerToken: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Обновлено
+
+    delete:
+      summary: Удалить рецепт
+      tags: [Recipes]
+      security:
+        - BearerToken: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Удалено
+
