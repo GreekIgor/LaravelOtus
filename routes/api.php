@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\RecipeApiController;
+use App\Http\Controllers\Api\V1\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -16,6 +17,9 @@ Route::prefix('v1')->group(function () {
     // Protected endpoints (require API token)
     Route::middleware('auth.api_token')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
+
+        // User profile endpoints
+        Route::get('me', [UserProfileController::class, 'show']);
 
         Route::post('recipes', [RecipeApiController::class, 'store']);
         Route::match(['put', 'patch'], 'recipes/{recipe}', [RecipeApiController::class, 'update'])

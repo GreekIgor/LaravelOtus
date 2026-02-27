@@ -41,6 +41,38 @@ components:
           type: string
           format: date-time
 
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        recipes_count:
+          type: integer
+          description: Количество рецептов пользователя
+        recent_recipes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              title:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+          description: Последние 5 рецептов пользователя
+
 paths:
   /auth/login:
     post:
@@ -62,8 +94,38 @@ paths:
       responses:
         '200':
           description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Bearer токен для авторизации
+                  token_type:
+                    type: string
+                    example: Bearer
         '422':
           description: Неверные данные
+
+  /me:
+    get:
+      summary: Получить данные текущего пользователя (личный кабинет)
+      tags: [User Profile]
+      security:
+        - BearerToken: []
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Не авторизован
 
   /recipes:
     get:
