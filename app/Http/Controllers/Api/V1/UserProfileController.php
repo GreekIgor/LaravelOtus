@@ -19,9 +19,12 @@ class UserProfileController extends Controller
         $user = Auth::user();
         
         // Загружаем количество рецептов и последние рецепты
+        // Используем select для оптимизации запросов
         $user->loadCount('recipes');
         $user->load(['recipes' => function ($query) {
-            $query->orderByDesc('created_at')->limit(5);
+            $query->select('recipes.id', 'recipes.title', 'recipes.created_at', 'recipes.user_id')
+                ->orderByDesc('created_at')
+                ->limit(5);
         }]);
 
         return new UserProfileResource($user);

@@ -4,10 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApiToken;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -20,15 +19,16 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        /** @var \App\Models\User|null $user */
-        $user = User::where('email', $credentials['email'])->first();
-
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        // Используем стандартный Auth::attempt для правильной работы с casts
+        if (! Auth::attempt($credentials)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
         $plainToken = Str::random(60);
 
         /** @var \App\Models\ApiToken $token */
@@ -38,6 +38,9 @@ class AuthController extends Controller
             'token' => hash('sha256', $plainToken),
             'abilities' => ['*'],
         ]);
+
+        // Выходим из сессии, так как используем stateless API
+        Auth::logout();
 
         return response()->json([
             'token' => $plainToken,
@@ -56,8 +59,12 @@ class AuthController extends Controller
         }
 
         $plainToken = substr($authHeader, 7);
+        $tokenHash = hash('sha256', $plainToken);
 
-        ApiToken::where('token', hash('sha256', $plainToken))->delete();
+        // Очищаем кэш токена перед удалением
+        \Illuminate\Support\Facades\Cache::forget("api_token:{$tokenHash}");
+
+        ApiToken::where('token', $tokenHash)->delete();
 
         return response()->json([
             'message' => 'Logged out.',

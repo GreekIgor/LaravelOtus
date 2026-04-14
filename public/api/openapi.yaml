@@ -2,8 +2,6 @@ openapi: 3.0.3
 info:
   title: Recipes API
   version: 1.0.0
-  description: >
-    CRUD API для работы с рецептами (v1).
 servers:
   - url: /api/v1
 
@@ -73,10 +71,30 @@ components:
                 format: date-time
           description: Последние 5 рецептов пользователя
 
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        image_url:
+          type: string
+          nullable: true
+        unit:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+
 paths:
   /auth/login:
     post:
       summary: Логин и получение токена
+      description: Аутентификация пользователя и получение Bearer токена для доступа к защищенным эндпоинтам
       tags: [Auth]
       requestBody:
         required: true
@@ -89,8 +107,11 @@ paths:
                 email:
                   type: string
                   format: email
+                  example: user@example.com
                 password:
                   type: string
+                  format: password
+                  example: password
       responses:
         '200':
           description: Успешная аутентификация
@@ -101,12 +122,72 @@ paths:
                 properties:
                   token:
                     type: string
-                    description: Bearer токен для авторизации
+                    description: "Bearer токен для авторизации (используйте в заголовке Authorization: Bearer {token})"
+                    example: "60-character-random-token-string"
                   token_type:
                     type: string
                     example: Bearer
         '422':
-          description: Неверные данные
+          description: Неверные данные (неверный email или пароль)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: array
+                        items:
+                          type: string
+
+  /auth/logout:
+    post:
+      summary: Выход и отзыв токена
+      description: Отзывает текущий Bearer токен, делая его недействительным
+      tags: [Auth]
+      security:
+        - BearerToken: []
+      responses:
+        '200':
+          description: Токен успешно отозван
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out.
+        '400':
+          description: Токен не предоставлен
+        '401':
+          description: Не авторизован
+
+  /ingredients:
+    get:
+      summary: Список ингредиентов
+      description: Получить список всех доступных ингредиентов (требуется авторизация)
+      tags: [Ingredients]
+      security:
+        - BearerToken: []
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ingredient'
+        '401':
+          description: Не авторизован
 
   /me:
     get:
@@ -130,13 +211,33 @@ paths:
   /recipes:
     get:
       summary: Список рецептов
+      description: Получить список рецептов с пагинацией и фильтрацией (требуется авторизация)
       tags: [Recipes]
+      security:
+        - BearerToken: []
       parameters:
         - in: query
           name: title
           schema:
             type: string
-          description: Фильтр по названию
+          description: Фильтр по названию (частичное совпадение)
+        - in: query
+          name: difficulty
+          schema:
+            type: string
+            enum: [легкий, средний, тяжелый]
+          description: Фильтр по сложности
+        - in: query
+          name: time_max
+          schema:
+            type: integer
+          description: Максимальное время готовки в минутах
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+          description: Количество элементов на странице
       responses:
         '200':
           description: Успешный ответ
@@ -149,20 +250,81 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Recipe'
+                  links:
+                    type: object
+                    description: Ссылки пагинации
+                  meta:
+                    type: object
+                    description: Метаданные пагинации
+        '401':
+          description: Не авторизован
 
     post:
       summary: Создать рецепт
+      description: Создать новый рецепт (требуется авторизация)
       tags: [Recipes]
       security:
         - BearerToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, cooking_time, difficulty, instructions, ingredients, amounts, units]
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                cooking_time:
+                  type: integer
+                  minimum: 1
+                difficulty:
+                  type: string
+                  enum: [легкий, средний, тяжелый]
+                instructions:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                  description: Изображение рецепта (jpg, jpeg, png, webp, max 4MB)
+                ingredients:
+                  type: array
+                  items:
+                    type: integer
+                  description: Массив ID ингредиентов
+                amounts:
+                  type: array
+                  items:
+                    type: number
+                  description: Массив количеств ингредиентов
+                units:
+                  type: array
+                  items:
+                    type: integer
+                  description: Массив ID единиц измерения
       responses:
         '201':
-          description: Рецепт создан
+          description: Рецепт успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Recipe'
+        '401':
+          description: Не авторизован
+        '422':
+          description: Ошибка валидации
 
   /recipes/{id}:
     get:
       summary: Получить рецепт по ID
+      description: Получить детальную информацию о рецепте (требуется авторизация)
       tags: [Recipes]
+      security:
+        - BearerToken: []
       parameters:
         - in: path
           name: id
@@ -176,11 +338,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Recipe'
+        '401':
+          description: Не авторизован
         '404':
           description: Не найдено
 
     put:
       summary: Обновить рецепт
+      description: Обновить существующий рецепт (требуется авторизация, можно обновлять только свои рецепты)
       tags: [Recipes]
       security:
         - BearerToken: []
@@ -190,12 +355,67 @@ paths:
           required: true
           schema:
             type: integer
+          description: ID рецепта
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, cooking_time, difficulty, instructions, ingredients, amounts, units]
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                cooking_time:
+                  type: integer
+                  minimum: 1
+                difficulty:
+                  type: string
+                  enum: [легкий, средний, тяжелый]
+                instructions:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                  description: Изображение рецепта (jpg, jpeg, png, webp, max 4MB)
+                ingredients:
+                  type: array
+                  items:
+                    type: integer
+                  description: Массив ID ингредиентов
+                amounts:
+                  type: array
+                  items:
+                    type: number
+                  description: Массив количеств ингредиентов
+                units:
+                  type: array
+                  items:
+                    type: integer
+                  description: Массив ID единиц измерения
       responses:
         '200':
-          description: Обновлено
+          description: Рецепт успешно обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Recipe'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав на обновление этого рецепта
+        '404':
+          description: Рецепт не найден
+        '422':
+          description: Ошибка валидации
 
     delete:
       summary: Удалить рецепт
+      description: Удалить рецепт (требуется авторизация и права администратора)
       tags: [Recipes]
       security:
         - BearerToken: []
@@ -205,7 +425,14 @@ paths:
           required: true
           schema:
             type: integer
+          description: ID рецепта
       responses:
         '204':
-          description: Удалено
+          description: Рецепт успешно удален (тело ответа пустое)
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет прав на удаление рецепта
+        '404':
+          description: Рецепт не найден
 

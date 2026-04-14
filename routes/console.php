@@ -13,11 +13,12 @@ Artisan::command('inspire', function () {
 Schedule::call(function () {
     // Полный сброс кэша раз в сутки
     Cache::flush();
-})->dailyAt('02:55')
+})->description('cache-flush-daily')
+  ->dailyAt('02:55')
   ->onOneServer();
 
 Schedule::command('cache:warm all --recipes-count=50 --pages=3')
-    // Прогрев кэша после сброса
+    ->name('cache-warm-daily')
     ->dailyAt('03:00')
     ->onOneServer();
 

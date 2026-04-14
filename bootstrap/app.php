@@ -24,6 +24,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.api_token' => ApiTokenAuth::class,
         ]);
+
+        // Настройка CORS для API
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+    })
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

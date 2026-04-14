@@ -4,16 +4,30 @@
     <meta charset="UTF-8">
     <title>Recipes API Docs</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        .download-url-wrapper {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
 <div id="swagger-ui"></div>
 
 <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
 <script>
     window.onload = function () {
-        SwaggerUIBundle({
-            url: '/api/openapi.yaml',
-            dom_id: '#swagger-ui'
+        window.ui = SwaggerUIBundle({
+            url: '{{ asset('api/openapi.yaml') }}',
+            dom_id: '#swagger-ui',
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+            ],
+            layout: "StandaloneLayout",
+            deepLinking: true,
+            filter: true,
+            docExpansion: 'list'
         });
     };
 </script>

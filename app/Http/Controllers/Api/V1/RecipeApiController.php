@@ -23,7 +23,10 @@ class RecipeApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Recipe::with(['author', 'ingredients']);
+        $query = Recipe::with([
+            'author:id,name',
+            'ingredients:id,name'
+        ])->select('recipes.*');
 
         if ($request->filled('title')) {
             $query->where('title', 'like', '%' . $request->string('title')->toString() . '%');
@@ -48,7 +51,10 @@ class RecipeApiController extends Controller
      */
     public function show(Recipe $recipe): RecipeResource
     {
-        $recipe->load(['author', 'ingredients']);
+        $recipe->load([
+            'author:id,name',
+            'ingredients:id,name'
+        ]);
 
         return new RecipeResource($recipe);
     }
