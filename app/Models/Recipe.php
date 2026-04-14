@@ -50,14 +50,14 @@ class Recipe extends Model
     /**
      * Доменные геттеры (вместо магических свойств)
      */
-    public function id(): int { return (int) $this->attributes['id']; }
-    public function title(): string { return (string) $this->attributes['title']; }
-    public function description(): ?string { return $this->attributes['description'] ?? null; }
-    public function instructions(): ?string { return $this->attributes['instructions'] ?? null; }
-    public function imagePath(): ?string { return $this->attributes['image_path'] ?? null; }
-    public function difficulty(): string { return (string) ($this->attributes['difficulty'] ?? self::DIFFICULTY_MEDIUM); }
-    public function cookingTime(): int { return (int) ($this->attributes['cooking_time'] ?? $this->attributes['time'] ?? 0); }
-    public function authorId(): int { return (int) $this->attributes['user_id']; }
+    public function getId(): int { return (int) ($this->attributes['id'] ?? 0); }
+    public function getTitle(): string { return (string) ($this->attributes['title'] ?? ''); }
+    public function getDescription(): ?string { return $this->attributes['description'] ?? null; }
+    public function getInstructions(): ?string { return $this->attributes['instructions'] ?? null; }
+    public function getImagePath(): ?string { return $this->attributes['image_path'] ?? null; }
+    public function getDifficulty(): string { return (string) ($this->attributes['difficulty'] ?? self::DIFFICULTY_MEDIUM); }
+    public function getCookingTime(): int { return (int) ($this->attributes['cooking_time'] ?? $this->attributes['time'] ?? 0); }
+    public function getAuthorId(): int { return (int) ($this->attributes['user_id'] ?? 0); }
 
     /**
      * Доменные мутации без сеттеров
