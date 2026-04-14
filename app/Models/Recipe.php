@@ -3,12 +3,112 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\ValueObjects\RecipeTitle;
 
 class Recipe extends Model
 {
     //
 
+    // Запрещаем массовое присвоение, переходим на фабрики/доменные методы
     protected $fillable = ['title', 'time', 'difficulty', 'image_path', 'ingredients', 'amounts', 'units', 'instructions', 'user_id'];
+
+    // Допустимые уровни сложности (синхронизировано с сидером)
+    public const DIFFICULTY_EASY = 'легкий';
+    public const DIFFICULTY_MEDIUM = 'средний';
+    public const DIFFICULTY_HARD = 'тяжелый';
+
+    /**
+     * Фабрика защищенного создания рецепта
+     */
+    public static function new(
+        RecipeTitle $title,
+        ?string $description,
+        ?string $instructions,
+        ?string $imagePath,
+        string $difficulty,
+        int $cookingTime,
+        int $userId
+    ): self {
+        self::assertDifficulty($difficulty);
+        if ($cookingTime <= 0) {
+            throw new \InvalidArgumentException('Cooking time must be positive');
+        }
+
+        $recipe = new self();
+        $recipe->attributes['title'] = $title->value();
+        $recipe->attributes['description'] = $description;
+        $recipe->attributes['instructions'] = $instructions;
+        $recipe->attributes['image_path'] = $imagePath;
+        $recipe->attributes['difficulty'] = $difficulty;
+        $recipe->attributes['cooking_time'] = $cookingTime;
+        $recipe->attributes['user_id'] = $userId;
+        $recipe->save();
+
+        return $recipe;
+    }
+
+    /**
+     * Доменные геттеры (вместо магических свойств)
+     */
+    public function id(): int { return (int) $this->attributes['id']; }
+    public function title(): string { return (string) $this->attributes['title']; }
+    public function description(): ?string { return $this->attributes['description'] ?? null; }
+    public function instructions(): ?string { return $this->attributes['instructions'] ?? null; }
+    public function imagePath(): ?string { return $this->attributes['image_path'] ?? null; }
+    public function difficulty(): string { return (string) ($this->attributes['difficulty'] ?? self::DIFFICULTY_MEDIUM); }
+    public function cookingTime(): int { return (int) ($this->attributes['cooking_time'] ?? $this->attributes['time'] ?? 0); }
+    public function authorId(): int { return (int) $this->attributes['user_id']; }
+
+    /**
+     * Доменные мутации без сеттеров
+     */
+    public function rename(RecipeTitle $title): void
+    {
+        $this->attributes['title'] = $title->value();
+        $this->save();
+    }
+
+    public function changeDifficulty(string $difficulty): void
+    {
+        self::assertDifficulty($difficulty);
+        $this->attributes['difficulty'] = $difficulty;
+        $this->save();
+    }
+
+    public function changeCookingTime(int $minutes): void
+    {
+        if ($minutes <= 0) {
+            throw new \InvalidArgumentException('Cooking time must be positive');
+        }
+        $this->attributes['cooking_time'] = $minutes;
+        $this->save();
+    }
+
+    public function updateInstructions(?string $instructions): void
+    {
+        $this->attributes['instructions'] = $instructions;
+        $this->save();
+    }
+
+    public function updateDescription(?string $description): void
+    {
+        $this->attributes['description'] = $description;
+        $this->save();
+    }
+
+    public function changeImagePath(?string $imagePath): void
+    {
+        $this->attributes['image_path'] = $imagePath;
+        $this->save();
+    }
+
+    private static function assertDifficulty(string $difficulty): void
+    {
+        $allowed = [self::DIFFICULTY_EASY, self::DIFFICULTY_MEDIUM, self::DIFFICULTY_HARD];
+        if (!in_array($difficulty, $allowed, true)) {
+            throw new \InvalidArgumentException('Invalid difficulty');
+        }
+    }
     
     /**
      * Получить маршрутный ключ для модели.
