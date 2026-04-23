@@ -10,7 +10,7 @@ class Recipe extends Model
     //
 
     // Запрещаем массовое присвоение, переходим на фабрики/доменные методы
-    protected $fillable = ['title', 'time', 'difficulty', 'image_path', 'ingredients', 'amounts', 'units', 'instructions', 'user_id'];
+    protected $fillable = ['title', 'cooking_time', 'difficulty', 'image_path', 'ingredients', 'amounts', 'units', 'instructions', 'user_id'];
 
     // Допустимые уровни сложности (синхронизировано с сидером)
     public const DIFFICULTY_EASY = 'легкий';
@@ -56,7 +56,7 @@ class Recipe extends Model
     public function getInstructions(): ?string { return $this->attributes['instructions'] ?? null; }
     public function getImagePath(): ?string { return $this->attributes['image_path'] ?? null; }
     public function getDifficulty(): string { return (string) ($this->attributes['difficulty'] ?? self::DIFFICULTY_MEDIUM); }
-    public function getCookingTime(): int { return (int) ($this->attributes['cooking_time'] ?? $this->attributes['time'] ?? 0); }
+    public function getCookingTime(): int { return (int) ($this->attributes['cooking_time'] ?? 0); }
     public function getAuthorId(): int { return (int) ($this->attributes['user_id'] ?? 0); }
 
     /**

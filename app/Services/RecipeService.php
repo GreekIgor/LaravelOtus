@@ -53,7 +53,7 @@ public function createRecipe(array $recipeData)
         }
     }
     // Оставляем только те ключи, которые есть в столбцах таблицы БД
-    $allowedFields = ['title', 'time', 'difficulty', 'instructions', 'image_path', 'user_id'];
+    $allowedFields = ['title', 'cooking_time', 'difficulty', 'instructions', 'image_path', 'user_id'];
     
     // Добавляем ID текущего пользователя
     $recipeData['user_id'] = Auth::id();
