@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class RecipeResource extends JsonResource
 {
@@ -21,7 +22,7 @@ class RecipeResource extends JsonResource
             'instructions' => $this->instructions,
             'difficulty' => $this->difficulty,
             'cooking_time' => $this->cooking_time,
-            'image_url' => $this->image_path ? asset($this->image_path) : null,
+            'image_url' => $this->resolveImageUrl($request),
             'author' => $this->whenLoaded('author', function () {
                 return [
                     'id' => $this->author->id,
@@ -40,6 +41,31 @@ class RecipeResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    private function resolveImageUrl(Request $request): ?string
+    {
+        if (! $this->image_path) {
+            return null;
+        }
+
+        $path = ltrim($this->image_path, '/');
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        $baseUrl = $request->getSchemeAndHttpHost();
+
+        if (file_exists(public_path($path))) {
+            return $baseUrl . '/' . $path;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return $baseUrl . Storage::disk('public')->url($path);
+        }
+
+        return $baseUrl . '/' . $path;
     }
 }
 

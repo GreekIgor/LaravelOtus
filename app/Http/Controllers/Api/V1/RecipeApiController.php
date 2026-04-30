@@ -9,6 +9,7 @@ use App\Models\Recipe;
 use App\Services\RecipeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class RecipeApiController extends Controller
@@ -23,10 +24,36 @@ class RecipeApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $perPage = max(1, min((int) $request->input('per_page', 10), 50));
+        $page = max(1, (int) $request->input('page', 1));
+
+        $cacheKey = 'api.recipes.' . md5(json_encode([
+            'host' => $request->getSchemeAndHttpHost(),
+            'title' => $request->input('title'),
+            'difficulty' => $request->input('difficulty'),
+            'time_max' => $request->input('time_max'),
+            'per_page' => $perPage,
+            'page' => $page,
+        ]));
+
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached)) {
+            return response()->json($cached);
+        }
+
         $query = Recipe::with([
             'author:id,name',
             'ingredients:id,name'
-        ])->select('recipes.*');
+        ])->select([
+            'recipes.id',
+            'recipes.title',
+            'recipes.difficulty',
+            'recipes.cooking_time',
+            'recipes.image_path',
+            'recipes.user_id',
+            'recipes.created_at',
+            'recipes.updated_at',
+        ]);
 
         if ($request->filled('title')) {
             $query->where('title', 'like', '%' . $request->string('title')->toString() . '%');
@@ -40,23 +67,39 @@ class RecipeApiController extends Controller
             $query->where('cooking_time', '<=', (int) $request->input('time_max'));
         }
 
-        $perPage = (int) $request->input('per_page', 10);
         $recipes = $query->orderByDesc('created_at')->paginate($perPage);
+        $payload = RecipeResource::collection($recipes)->response()->getData(true);
 
-        return RecipeResource::collection($recipes)->response();
+        Cache::put($cacheKey, $payload, now()->addSeconds(45));
+
+        return response()->json($payload);
     }
 
     /**
      * GET /api/v1/recipes/{id}
      */
-    public function show(Recipe $recipe): RecipeResource
+    public function show(Request $request, Recipe $recipe): JsonResponse
     {
+        $cacheKey = 'api.recipe.show.' . md5(json_encode([
+            'host' => $request->getSchemeAndHttpHost(),
+            'id' => $recipe->id,
+        ]));
+
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached)) {
+            return response()->json($cached);
+        }
+
         $recipe->load([
             'author:id,name',
             'ingredients:id,name'
         ]);
 
-        return new RecipeResource($recipe);
+        $payload = (new RecipeResource($recipe))->response()->getData(true);
+
+        Cache::put($cacheKey, $payload, now()->addSeconds(60));
+
+        return response()->json($payload);
     }
 
     /**

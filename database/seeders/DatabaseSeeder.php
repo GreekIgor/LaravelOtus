@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             IngredientSeeder::class,
             TagSeeder::class,
             RecipeSeeder::class,
+			UserSeeder::class
         ]);
 
     }

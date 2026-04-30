@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\IngredientResource;
 use App\Models\Ingredient;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class IngredientApiController extends Controller
 {
@@ -15,10 +16,21 @@ class IngredientApiController extends Controller
      */
     public function index(): JsonResponse
     {
+        $cacheKey = 'api.ingredients.list.' . md5(request()->getSchemeAndHttpHost());
+
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached)) {
+            return response()->json($cached);
+        }
+
         $ingredients = Ingredient::with('unit:id,name')
             ->select('ingredients.*')
             ->get();
 
-        return IngredientResource::collection($ingredients)->response();
+        $payload = IngredientResource::collection($ingredients)->response()->getData(true);
+
+        Cache::put($cacheKey, $payload, now()->addMinutes(10));
+
+        return response()->json($payload);
     }
 }

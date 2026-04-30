@@ -6,6 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RecipeRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $difficulty = $this->input('difficulty');
+
+        if (is_string($difficulty)) {
+            $normalized = mb_strtolower(trim($difficulty));
+
+            $map = [
+                'easy' => 'легкий',
+                'medium' => 'средний',
+                'hard' => 'тяжелый',
+            ];
+
+            $this->merge([
+                'difficulty' => $map[$normalized] ?? $normalized,
+            ]);
+        }
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -24,9 +43,10 @@ class RecipeRequest extends FormRequest
         return [
         'title' => 'required|string|max:255',
         'cooking_time' => 'required|integer|min:1',
-        'difficulty' => 'required|in:легкий,средний,тяжелый',
+        'difficulty' => 'required|string|max:50',
         'instructions' => 'required|string',
         'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        'tag_id' => 'nullable|exists:tags,id',
 
         // Валидация массивов ингредиентов
         'ingredients' => 'required|array|min:1', // Должен быть массив и минимум 1 элемент

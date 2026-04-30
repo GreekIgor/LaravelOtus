@@ -49,7 +49,41 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
+            "php artisan serve"
+        ],
+        "prod:prepare": [
+            "@composer run optimize:fast"
+        ],
+        "prod": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan serve --no-reload --host=0.0.0.0 --port=8000"
+        ],
+        "dev:web": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#fdba74\" \"php artisan serve\" \"npm run dev\" --names=server,vite --kill-others"
+        ],
+        "dev:full": [
+            "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+        ],
+        "optimize:fast": [
+            "@php artisan config:clear --ansi",
+            "@php artisan route:clear --ansi",
+            "@php artisan event:clear --ansi",
+            "@php artisan view:clear --ansi",
+            "@php artisan config:cache --ansi",
+            "@php artisan route:cache --ansi",
+            "@php artisan event:cache --ansi",
+            "@php artisan view:cache --ansi",
+            "composer dump-autoload --optimize --classmap-authoritative"
+        ],
+        "optimize:clear": [
+            "@php artisan config:clear --ansi",
+            "@php artisan route:clear --ansi",
+            "@php artisan event:clear --ansi",
+            "@php artisan view:clear --ansi",
+            "@php artisan clear-compiled --ansi",
+            "composer dump-autoload"
         ],
         "test": [
             "@php artisan config:clear --ansi",
@@ -76,7 +110,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "barryvdh/laravel-debugbar"
+            ]
         }
     },
     "config": {

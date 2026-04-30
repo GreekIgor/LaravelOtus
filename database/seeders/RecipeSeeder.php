@@ -18,6 +18,13 @@ class RecipeSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $user = User::firstOrCreate(['email' => 'admin@example.com'], ['name' => 'Admin', 'password' => bcrypt('password')]);
+        $tagIds = DB::table('tags')->pluck('id')->all();
+
+        if (empty($tagIds)) {
+            $tagIds = [
+                DB::table('tags')->insertGetId(['name' => 'Общее']),
+            ];
+        }
 
         $recipes = [
             // --- КАЗАХСКАЯ КУХНЯ ---
@@ -248,6 +255,7 @@ class RecipeSeeder extends Seeder
                 'cooking_time' => $data['cooking_time'],
                 'image_path' => 'recipes/' . $data['image_path'],
                 'user_id' => $user->id,
+                'tag_id' => $tagIds[array_rand($tagIds)],
             ]);
 
             foreach ($data['ingredients'] as $ing) {

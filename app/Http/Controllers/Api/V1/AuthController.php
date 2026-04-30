@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApiToken;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -19,15 +20,15 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Используем стандартный Auth::attempt для правильной работы с casts
-        if (! Auth::attempt($credentials)) {
+        $user = User::query()
+            ->where('email', $credentials['email'])
+            ->first();
+
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
         
         $plainToken = Str::random(60);
 
@@ -38,9 +39,6 @@ class AuthController extends Controller
             'token' => hash('sha256', $plainToken),
             'abilities' => ['*'],
         ]);
-
-        // Выходим из сессии, так как используем stateless API
-        Auth::logout();
 
         return response()->json([
             'token' => $plainToken,

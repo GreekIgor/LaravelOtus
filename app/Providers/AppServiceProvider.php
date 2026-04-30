@@ -12,6 +12,28 @@ use Monolog\Level;
 
 class AppServiceProvider extends ServiceProvider
 {
+    private const ROLE_PERMISSIONS = [
+        'admin' => [
+            'view-admin-dashboard',
+            'manage-recipes',
+            'edit-own-recipes',
+            'create-recipes',
+            'delete-recipes',
+            'manage-ingredients',
+            'manage-users',
+            'view-statistics',
+        ],
+        'moderator' => [
+            'create-recipes',
+            'edit-own-recipes',
+            'view-statistics',
+        ],
+        'viewer' => [
+            'create-recipes',
+            'edit-own-recipes',
+        ],
+    ];
+
     /**
      * Register any application services.
      */
@@ -21,41 +43,13 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Определение разрешений для ролей
-     */
-    private function defineRolePermissions(): array
-    {
-        return [
-            'admin' => [
-                'view-admin-dashboard',
-                'manage-recipes',
-                'edit-own-recipes',
-                'create-recipes',
-                'delete-recipes',
-                'manage-ingredients',
-                'manage-users',
-                'view-statistics',
-            ],
-            'moderator' => [
-                'create-recipes',
-                'edit-own-recipes',
-                'view-statistics',
-            ],
-            'viewer' => [
-                // Viewer имеет только базовые права на просмотр
-            ],
-        ];
-    }
-
-    /**
      * Проверка, имеет ли пользователь разрешение
      */
     private function userHasPermission($user, string $permission): bool
     {
-        $rolePermissions = $this->defineRolePermissions();
         $userRole = $user->role ?? 'viewer';
-        
-        return in_array($permission, $rolePermissions[$userRole] ?? []);
+
+        return in_array($permission, self::ROLE_PERMISSIONS[$userRole] ?? [], true);
     }
 
     /**
@@ -78,8 +72,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Регистрация кастомного драйвера для Telegram логирования
         Log::extend('telegram', function ($app, $config) {
-            $botToken = $config['handler_with']['bot_token'] ?? env('TELEGRAM_BOT_TOKEN');
-            $chatId = $config['handler_with']['chat_id'] ?? env('TELEGRAM_CHAT_ID');
+            $botToken = $config['handler_with']['bot_token'] ?? null;
+            $chatId = $config['handler_with']['chat_id'] ?? null;
             $level = Level::fromName($config['level'] ?? 'error');
 
             if (empty($botToken) || empty($chatId)) {

@@ -10,7 +10,7 @@ class Recipe extends Model
     //
 
     // Запрещаем массовое присвоение, переходим на фабрики/доменные методы
-    protected $fillable = ['title', 'cooking_time', 'difficulty', 'image_path', 'ingredients', 'amounts', 'units', 'instructions', 'user_id'];
+    protected $fillable = ['title', 'description', 'cooking_time', 'difficulty', 'image_path', 'ingredients', 'amounts', 'units', 'instructions', 'user_id', 'tag_id'];
 
     // Допустимые уровни сложности (синхронизировано с сидером)
     public const DIFFICULTY_EASY = 'легкий';

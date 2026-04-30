@@ -6,6 +6,7 @@ use App\Events\RecipeCreated;
 use App\Events\RecipeUpdated;
 use App\Models\Ingredient;
 use App\Models\Recipe;
+use App\Models\Tag;
 use App\Models\Unit;
 use App\Repositories\RecipeRepository;
 use DB;
@@ -37,6 +38,8 @@ class RecipeService
     }
 public function createRecipe(array $recipeData)
 {
+    $recipeData['difficulty'] = $this->normalizeDifficulty($recipeData['difficulty'] ?? null);
+
     // Используем 'image_path' или 'img' в зависимости от вашей базы
     if (isset($recipeData['image']) && $recipeData['image'] instanceof \Illuminate\Http\UploadedFile) {
         $recipeData['image_path'] = $recipeData['image']->store('recipes', 'public');
@@ -53,7 +56,11 @@ public function createRecipe(array $recipeData)
         }
     }
     // Оставляем только те ключи, которые есть в столбцах таблицы БД
-    $allowedFields = ['title', 'cooking_time', 'difficulty', 'instructions', 'image_path', 'user_id'];
+    if (empty($recipeData['tag_id'])) {
+        $recipeData['tag_id'] = Tag::query()->value('id');
+    }
+
+    $allowedFields = ['title', 'description', 'cooking_time', 'difficulty', 'instructions', 'image_path', 'user_id', 'tag_id'];
     
     // Добавляем ID текущего пользователя
     $recipeData['user_id'] = Auth::id();
@@ -77,6 +84,8 @@ public function updateRecipe($id, array $data): Recipe
 {
     $recipe = Recipe::findOrFail($id);
 
+    $data['difficulty'] = $this->normalizeDifficulty($data['difficulty'] ?? null);
+
     if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
         $data['img'] = $data['image']->store('recipes', 'public');
     }
@@ -96,9 +105,12 @@ public function updateRecipe($id, array $data): Recipe
     }
 
     
+    $allowedFields = ['title', 'description', 'cooking_time', 'difficulty', 'instructions', 'image_path', 'user_id', 'tag_id'];
+    $filteredData = array_intersect_key($data, array_flip($allowedFields));
+
     $updatedRecipe = $this->recipeRepository->update(
         $recipe, 
-        $data, 
+        $filteredData, 
         $syncData
     );
     
@@ -113,6 +125,22 @@ public function updateRecipe($id, array $data): Recipe
     
     return $updatedRecipe;
 }
+
+    private function normalizeDifficulty(mixed $difficulty): string
+    {
+        if (! is_string($difficulty)) {
+            return 'легкий';
+        }
+
+        $value = mb_strtolower(trim($difficulty));
+
+        return match ($value) {
+            'легкий', 'easy' => 'легкий',
+            'средний', 'medium' => 'средний',
+            'тяжелый', 'hard' => 'тяжелый',
+            default => 'легкий',
+        };
+    }
     public function deleteRecipe($id)
     {
         $result = $this->recipeRepository->delete($id);
